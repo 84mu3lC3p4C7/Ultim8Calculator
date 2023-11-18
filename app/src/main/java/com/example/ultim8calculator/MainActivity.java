@@ -7,18 +7,23 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
     TextView display;
+    NumberFormat decimalFormat = DecimalFormat.getInstance();
     List<Double> numbers = new ArrayList<>();
     List<String> operations = new ArrayList<>();
-    int lastIndex = 0;
+    String displayText; // just to get rid of these warnings: Do not concatenate text displayed with setText. Use resource string with placeholders.
     double tempResult;
+    int lastIndex = 0;
     boolean operationBefore = false;
+    boolean commaUsed = false;
 
 
     @Override
@@ -27,35 +32,47 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         display = findViewById(R.id.txt_display);
 
+        decimalFormat.setMinimumFractionDigits(0);
+        decimalFormat.setMaximumFractionDigits(8);
+        decimalFormat.setRoundingMode(RoundingMode.HALF_EVEN);
+        displayText = display.getText().toString();
+
+    }
+
+    private String getDisplayText() {
+        return display.getText().toString();
     }
 
     public void onNumberButtonClick(View view) {
         operationBefore = false;
         Button btn = (Button) view;
-        display.setText(display.getText().toString() + btn.getText().toString());
+        displayText = getDisplayText() + btn.getText().toString();
+        display.setText(displayText);
     }
 
     public void onOperationButtonClick(View view) {
         Button btn = (Button) view;
-        if (!display.getText().toString().isEmpty() && !display.getText().toString().substring(display.getText().toString().length() - 1).equals("E")) {
+        if (!getDisplayText().isEmpty() && !getDisplayText().substring(getDisplayText().length() - 1).equals("E")) {
             if (operationBefore) {
-                display.setText(display.getText().toString().substring(0, display.getText().toString().length() - 1) + btn.getText().toString());
-                operations.remove(operations.size() - 1);
-                operations.add(btn.getText().toString());
+                displayText = getDisplayText().substring(0, getDisplayText().length() - 1) + btn.getText().toString();
+                display.setText(displayText);
+                operations.set(operations.size() - 1, btn.getText().toString());
             }
             else {
                 operationBefore = true;
-                numbers.add(Double.parseDouble(display.getText().toString().substring(lastIndex, display.getText().toString().length()).replace(',', '.')));
-                lastIndex = display.getText().toString().length() + 1;
+                commaUsed = false;
+                numbers.add(Double.parseDouble(getDisplayText().substring(lastIndex).replace(',', '.')));
+                lastIndex = getDisplayText().length() + 1;
                 operations.add(btn.getText().toString());
-                display.setText(display.getText().toString() + btn.getText().toString());
+                displayText = getDisplayText() + btn.getText().toString();
+                display.setText(displayText);
             }
         }
     }
 
     public void onEqualsButtonClick(View view) {
-        if (!operationBefore && !display.getText().toString().isEmpty()) {
-            numbers.add(Double.parseDouble(display.getText().toString().substring(lastIndex, display.getText().toString().length()).replace(',', '.')));
+        if (!operationBefore && !getDisplayText().isEmpty()) {
+            numbers.add(Double.parseDouble(getDisplayText().substring(lastIndex).replace(',', '.')));
             for (int i = 0; i < operations.size(); i++) {
                 if ("^".equals(operations.get(i))) {
                     numbers.set(i + 1, Math.pow(numbers.get(i), numbers.get(i + 1)));
@@ -100,8 +117,9 @@ public class MainActivity extends AppCompatActivity {
             }
             lastIndex = 0;
             operationBefore = false;
+            commaUsed = false;
             if (isCommaNecessary(tempResult)) {
-                display.setText(String.format(Locale.FRANCE, "%,.8f", tempResult));
+                display.setText(decimalFormat.format(tempResult).replace('.', ','));
             }
             else {
                 display.setText(String.valueOf((int) tempResult));
@@ -110,17 +128,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onCommaButtonClick(View view) {
-        if (!operationBefore && !display.getText().toString().isEmpty()) {
-            display.setText(display.getText() + ",");
+        if (!commaUsed && !getDisplayText().isEmpty() && !operationBefore) {
+            commaUsed = true;
+            displayText = display.getText() + ",";
+            display.setText(displayText);
         }
     }
 
     public void onClearButtonClick(View view) {
-        if (!display.getText().toString().isEmpty()) {
-            String lastChar = display.getText().toString().substring(display.getText().toString().length() - 1);
+        if (!getDisplayText().isEmpty()) {
+            String lastChar = getDisplayText().substring(getDisplayText().length() - 1);
             if (isNumber(lastChar)) {
-                display.setText(display.getText().toString().substring(0, display.getText().toString().length() - 1));
-                if (!display.getText().toString().isEmpty() && !isNumber(lastChar) && !lastChar.equals("E")  && !lastChar.equals(".")) {
+                display.setText(getDisplayText().substring(0, getDisplayText().length() - 1));
+                if (!getDisplayText().isEmpty() && getDisplayText().substring(getDisplayText().length() - 1).equals(operations.get(operations.size() - 1))) {
                     operationBefore = true;
                 }
             }
@@ -128,15 +148,18 @@ public class MainActivity extends AppCompatActivity {
                 if (!operations.isEmpty() && lastChar.equals(operations.get(operations.size() - 1))) {
                     numbers.remove(numbers.size() - 1);
                     operations.remove(operations.size() - 1);
-                    if (!operations.isEmpty()) {
-                        lastIndex = display.getText().toString().lastIndexOf(operations.get(operations.size() - 1)) + 1;
+                    if (operations.isEmpty()) {
+                        lastIndex = 0;
+                    }
+                    else {
+                        lastIndex = getDisplayText().lastIndexOf(operations.get(operations.size() - 1)) + 1;
                     }
                 }
-                if (operations.isEmpty()) {
-                    lastIndex = 0;
-                }
                 operationBefore = false;
-                display.setText(display.getText().toString().substring(0, display.getText().toString().length() - 1));
+                display.setText(getDisplayText().substring(0, getDisplayText().length() - 1));
+                if (getDisplayText().substring(getDisplayText().length() - 1).equals(",")) {
+                    commaUsed = true;
+                }
             }
         }
     }
@@ -146,17 +169,13 @@ public class MainActivity extends AppCompatActivity {
         operations.clear();
         lastIndex = 0;
         operationBefore = false;
+        commaUsed = false;
         display.setText("");
     }
 
     public boolean isCommaNecessary(double number) {
         int comparedInt = (int) number;
-        if ((double) comparedInt == number) {
-            return false;
-        }
-        else {
-            return true;
-        }
+        return (double) comparedInt != number;
     }
 
     public boolean isNumber(String string) {
