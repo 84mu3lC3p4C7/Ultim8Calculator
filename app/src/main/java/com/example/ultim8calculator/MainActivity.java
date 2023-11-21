@@ -15,15 +15,14 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    TextView display;
+    TextView display, oldCalculation1, oldResult1, oldCalculation2, oldResult2;
     NumberFormat decimalFormat = DecimalFormat.getInstance();
     List<Double> numbers = new ArrayList<>();
     List<String> operations = new ArrayList<>();
     String displayText; // just to get rid of these warnings: Do not concatenate text displayed with setText. Use resource string with placeholders.
     double tempResult;
     int lastIndex = 0;
-    boolean operationBefore = false;
-    boolean commaUsed = false;
+    boolean operationBefore = false,  commaUsed = false;
 
 
     @Override
@@ -31,6 +30,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         display = findViewById(R.id.txt_display);
+        oldResult1 = findViewById(R.id.txt_oldResult1);
+        oldCalculation1 = findViewById(R.id.txt_oldCalculation1);
+        oldResult2 = findViewById(R.id.txt_oldResult2);
+        oldCalculation2 = findViewById(R.id.txt_oldCalculation2);
 
         decimalFormat.setMinimumFractionDigits(0);
         decimalFormat.setMaximumFractionDigits(8);
@@ -41,6 +44,22 @@ public class MainActivity extends AppCompatActivity {
 
     private String getDisplayText() {
         return display.getText().toString();
+    }
+
+    private void updateDisplays() {
+        oldCalculation2.setText(oldCalculation1.getText().toString());
+        oldResult2.setText(oldResult1.getText().toString());
+        oldCalculation1.setText(getDisplayText());
+        if (isCommaNecessary(tempResult)) {
+            displayText = "= " + decimalFormat.format(tempResult).replace('.', ',');
+            oldResult1.setText(displayText);
+            display.setText(decimalFormat.format(tempResult).replace('.', ','));
+        }
+        else {
+            displayText = "= " + (int) tempResult;
+            oldResult1.setText(displayText);
+            display.setText(String.valueOf((int) tempResult));
+        }
     }
 
     public void onNumberButtonClick(View view) {
@@ -118,12 +137,7 @@ public class MainActivity extends AppCompatActivity {
             lastIndex = 0;
             operationBefore = false;
             commaUsed = false;
-            if (isCommaNecessary(tempResult)) {
-                display.setText(decimalFormat.format(tempResult).replace('.', ','));
-            }
-            else {
-                display.setText(String.valueOf((int) tempResult));
-            }
+            updateDisplays();
         }
     }
 
@@ -140,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
             String lastChar = getDisplayText().substring(getDisplayText().length() - 1);
             if (isNumber(lastChar)) {
                 display.setText(getDisplayText().substring(0, getDisplayText().length() - 1));
-                if (!getDisplayText().isEmpty() && getDisplayText().substring(getDisplayText().length() - 1).equals(operations.get(operations.size() - 1))) {
+                if (!operations.isEmpty() && getDisplayText().substring(getDisplayText().length() - 1).equals(operations.get(operations.size() - 1))) {
                     operationBefore = true;
                 }
             }
@@ -155,9 +169,15 @@ public class MainActivity extends AppCompatActivity {
                         lastIndex = getDisplayText().lastIndexOf(operations.get(operations.size() - 1)) + 1;
                     }
                 }
+                else if (lastChar.equals(",")) {
+                    commaUsed = false;
+                }
                 operationBefore = false;
                 display.setText(getDisplayText().substring(0, getDisplayText().length() - 1));
-                if (getDisplayText().substring(getDisplayText().length() - 1).equals(",")) {
+                System.out.println(getDisplayText());
+                System.out.println(lastIndex);
+                System.out.println(getDisplayText().substring(lastIndex)); // !!!!!!!!!
+                if (getDisplayText().substring(lastIndex).contains(",")) {
                     commaUsed = true;
                 }
             }
@@ -170,6 +190,10 @@ public class MainActivity extends AppCompatActivity {
         lastIndex = 0;
         operationBefore = false;
         commaUsed = false;
+        oldCalculation2.setText("");
+        oldResult2.setText("");
+        oldCalculation1.setText("");
+        oldResult1.setText("");
         display.setText("");
     }
 
