@@ -1,4 +1,4 @@
 # Ultim8Calculator
 A simple calculator that uses reverse Polish notation to solve math problems, created in Android Studio.
-Work still in progress!
+<s>Work still in progress!<s/> <br>
 ![image](https://github.com/84mu3lC3p4C7/Ultim8Calculator/assets/111708236/5ccabb08-83b2-421f-b019-b35403deb5ac)
