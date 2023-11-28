@@ -10,207 +10,271 @@ import android.widget.TextView;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
+
+import algorithm.ReversePolishNotation;
 
 public class MainActivity extends AppCompatActivity {
 
-    TextView display, oldCalculation1, oldResult1, oldCalculation2, oldResult2;
+    TextView resultLine, calculationLine;
+    Button clearAllButton, commaButton, endingBracketButton;
+    ReversePolishNotation rpn = new ReversePolishNotation();
     NumberFormat decimalFormat = DecimalFormat.getInstance();
-    List<Double> numbers = new ArrayList<>();
-    List<String> operations = new ArrayList<>();
-    String displayText; // just to get rid of these warnings: Do not concatenate text displayed with setText. Use resource string with placeholders.
-    double tempResult;
-    int lastIndex = 0;
-    boolean operationBefore = false,  commaUsed = false;
+    String text; // just to get rid of warnings "Do not concatenate text displayed with setText. Use resource string with placeholders."
+    double result;
+    int brackets = 0;
+    boolean operationBefore = false, newCalculation = true, operationDeleted = false;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        display = findViewById(R.id.txt_display);
-        oldResult1 = findViewById(R.id.txt_oldResult1);
-        oldCalculation1 = findViewById(R.id.txt_oldCalculation1);
-        oldResult2 = findViewById(R.id.txt_oldResult2);
-        oldCalculation2 = findViewById(R.id.txt_oldCalculation2);
+        resultLine = findViewById(R.id.txt_number);
+        calculationLine = findViewById(R.id.txt_calculation);
+        clearAllButton = findViewById(R.id.btn_action1);
+        commaButton = findViewById(R.id.btn_comma);
+        endingBracketButton = findViewById(R.id.btn_bracket2);
 
         decimalFormat.setMinimumFractionDigits(0);
         decimalFormat.setMaximumFractionDigits(8);
+        decimalFormat.setGroupingUsed(false);
         decimalFormat.setRoundingMode(RoundingMode.HALF_EVEN);
-        displayText = display.getText().toString();
 
+        text = "0";
+        resultLine.setText(text);
+        endingBracketButton.setEnabled(false);
     }
 
-    private String getDisplayText() {
-        return display.getText().toString();
+    private String getResultLineText() {
+        return resultLine.getText().toString();
     }
 
-    private void updateDisplays() {
-        oldCalculation2.setText(oldCalculation1.getText().toString());
-        oldResult2.setText(oldResult1.getText().toString());
-        oldCalculation1.setText(getDisplayText());
-        if (isCommaNecessary(tempResult)) {
-            displayText = "= " + decimalFormat.format(tempResult).replace('.', ',');
-            oldResult1.setText(displayText);
-            display.setText(decimalFormat.format(tempResult).replace('.', ','));
-        }
-        else {
-            displayText = "= " + (int) tempResult;
-            oldResult1.setText(displayText);
-            display.setText(String.valueOf((int) tempResult));
-        }
+    private String getCalculationLineText() {
+        return calculationLine.getText().toString();
+    }
+
+    private void afterNewCalculation() {
+        newCalculation = false;
+        brackets = 0;
+        endingBracketButton.setEnabled(false);
+        commaButton.setEnabled(true);
+        calculationLine.setText("");
     }
 
     public void onNumberButtonClick(View view) {
-        operationBefore = false;
         Button btn = (Button) view;
-        displayText = getDisplayText() + btn.getText().toString();
-        display.setText(displayText);
+        if (newCalculation) {
+            afterNewCalculation();
+        }
+        operationBefore = false;
+        text = "C";
+        clearAllButton.setText(text);
+        if (getResultLineText().equals("0")) {
+            text = btn.getText().toString();
+        }
+        else {
+            text = getResultLineText() + btn.getText().toString();
+        }
+        resultLine.setText(text);
     }
 
     public void onOperationButtonClick(View view) {
-        Button btn = (Button) view;
-        if (!getDisplayText().isEmpty() && !getDisplayText().substring(getDisplayText().length() - 1).equals("E")) {
+        if (!getResultLineText().isEmpty()) {
+            if (newCalculation) {
+                afterNewCalculation();
+            }
+            Button btn = (Button) view;
             if (operationBefore) {
-                displayText = getDisplayText().substring(0, getDisplayText().length() - 1) + btn.getText().toString();
-                display.setText(displayText);
-                operations.set(operations.size() - 1, btn.getText().toString());
+                text = getCalculationLineText().substring(0, getCalculationLineText().length() - 2) + btn.getText().toString() + " ";
+                calculationLine.setText(text);
             }
             else {
                 operationBefore = true;
-                commaUsed = false;
-                numbers.add(Double.parseDouble(getDisplayText().substring(lastIndex).replace(',', '.')));
-                lastIndex = getDisplayText().length() + 1;
-                operations.add(btn.getText().toString());
-                displayText = getDisplayText() + btn.getText().toString();
-                display.setText(displayText);
+                commaButton.setEnabled(true);
+                if (!getCalculationLineText().isEmpty() && rpn.isNumber(getCalculationLineText().substring(getCalculationLineText().length() - 1)) || !getCalculationLineText().isEmpty() && getCalculationLineText().substring(getCalculationLineText().length() - 1).equals(")")) {
+                    operationDeleted = false;
+                    text = getCalculationLineText() + " " + btn.getText().toString() + " ";
+                }
+                else {
+                    text = getCalculationLineText() + getResultLineText() + " " + btn.getText().toString() + " ";
+                }
+                calculationLine.setText(text);
+                resultLine.setText("0");
             }
         }
     }
 
+    public void onBracketsButtonClick(View view) {
+        Button btn = (Button) view;
+        if (newCalculation) {
+            afterNewCalculation();
+        }
+        if (btn.getText().toString().equals("(")) {
+            brackets++;
+            endingBracketButton.setEnabled(true);
+            if (!getResultLineText().equals("0")) {
+                text = getCalculationLineText() + getResultLineText() + " × " + btn.getText() + " ";
+                resultLine.setText("0");
+            }
+            else if (!getCalculationLineText().isEmpty() && rpn.isNumber(getCalculationLineText().substring(getCalculationLineText().length() - 1)) || !getCalculationLineText().isEmpty() && getCalculationLineText().substring(getCalculationLineText().length() - 1).equals(")")) {
+                text = getCalculationLineText() + " × " + btn.getText() + " ";
+            }
+            else {
+                text = getCalculationLineText() + btn.getText() + " ";
+            }
+        }
+        else {
+            brackets--;
+            if (brackets < 1) {
+                endingBracketButton.setEnabled(false);
+            }
+            operationDeleted = true;
+            if (getCalculationLineText().substring(getCalculationLineText().length() - 2, getCalculationLineText().length() - 1).matches("[+\\-×÷^(]")) {
+                text = getCalculationLineText() + getResultLineText() + " " + btn.getText();
+            }
+            else {
+                text = getCalculationLineText() + " " + btn.getText();
+            }
+            resultLine.setText("0");
+        }
+        operationBefore = false;
+        calculationLine.setText(text);
+    }
+
     public void onEqualsButtonClick(View view) {
-        if (!operationBefore && !getDisplayText().isEmpty()) {
-            numbers.add(Double.parseDouble(getDisplayText().substring(lastIndex).replace(',', '.')));
-            for (int i = 0; i < operations.size(); i++) {
-                if ("^".equals(operations.get(i))) {
-                    numbers.set(i + 1, Math.pow(numbers.get(i), numbers.get(i + 1)));
-                    numbers.remove(i);
-                    operations.remove(i);
-                    i--;
-                }
+        if (!newCalculation) {
+            newCalculation = true;
+            if (getCalculationLineText().isEmpty()) {
+                calculationLine.setText(getResultLineText());
             }
-            for (int i = 0; i < operations.size(); i++) {
-                switch (operations.get(i)) {
-                    case ("×"):
-                        numbers.set(i + 1, numbers.get(i) * numbers.get(i + 1));
-                        numbers.remove(i);
-                        operations.remove(i);
-                        i--;
-                        break;
-                    case ("÷"):
-                        numbers.set(i + 1, numbers.get(i) / numbers.get(i + 1));
-                        numbers.remove(i);
-                        operations.remove(i);
-                        i--;
-                        break;
+            else {
+                text = getCalculationLineText();
+                if (text.length() > 1 && text.substring(text.length() - 2, text.length() - 1).matches("[+\\-×÷^(]")) {
+                    text += getResultLineText();
                 }
-            }
-            tempResult = numbers.get(0);
-            numbers.remove(0);
-            for (int i = 0; i < operations.size(); i++) {
-                switch (operations.get(i)) {
-                    case ("+"):
-                        tempResult += numbers.get(i);
-                        numbers.remove(i);
-                        operations.remove(i);
-                        i--;
-                        break;
-                    case ("-"):
-                        tempResult -= numbers.get(i);
-                        numbers.remove(i);
-                        operations.remove(i);
-                        i--;
-                        break;
+                for (int i = 0; i < brackets; i++) {
+                    text += " )";
                 }
+                calculationLine.setText(text);
+                System.out.println(text);
             }
-            lastIndex = 0;
+            try {
+                result = rpn.solveRPN(rpn.convertToRPN(getCalculationLineText().replace(",", ".")));
+            }   catch (NumberFormatException e ) {
+                result = 0;
+                // need to handle errors here !!!
+            }
+            if (isCommaNecessary(result)) {
+                commaButton.setEnabled(false);
+                text = decimalFormat.format(result); //used to be "text = decimalFormat.format(result).replace(",", "").replace('.', ',');", but this works for physical devices fine
+                resultLine.setText(text);
+                text = getCalculationLineText() + " =";
+                calculationLine.setText(text);
+            }
+            else {
+                commaButton.setEnabled(true);
+                text = getCalculationLineText() + " =";
+                calculationLine.setText(text);
+                resultLine.setText(String.valueOf((long) result));
+            }
+            brackets = 0;
+            endingBracketButton.setEnabled(false);
             operationBefore = false;
-            commaUsed = false;
-            updateDisplays();
+            text = "AC";
+            clearAllButton.setText(text);
         }
     }
 
     public void onCommaButtonClick(View view) {
-        if (!commaUsed && !getDisplayText().isEmpty() && !operationBefore) {
-            commaUsed = true;
-            displayText = display.getText() + ",";
-            display.setText(displayText);
+        if (newCalculation) {
+            afterNewCalculation();
         }
+        commaButton.setEnabled(false);
+        text = getResultLineText() + ",";
+        resultLine.setText(text);
     }
 
     public void onClearButtonClick(View view) {
-        if (!getDisplayText().isEmpty()) {
-            String lastChar = getDisplayText().substring(getDisplayText().length() - 1);
-            if (isNumber(lastChar)) {
-                display.setText(getDisplayText().substring(0, getDisplayText().length() - 1));
-                if (!operations.isEmpty() && getDisplayText().substring(getDisplayText().length() - 1).equals(operations.get(operations.size() - 1))) {
-                    operationBefore = true;
-                }
+        if (newCalculation) {
+            newCalculation = false;
+            operationDeleted = true;
+            brackets = 0;
+            endingBracketButton.setEnabled(false);
+            commaButton.setEnabled(true);
+            if (!getCalculationLineText().isEmpty()) {
+                text = getCalculationLineText().substring(0, getCalculationLineText().length() - 2);
+                calculationLine.setText(text);
             }
-            else {
-                if (!operations.isEmpty() && lastChar.equals(operations.get(operations.size() - 1))) {
-                    numbers.remove(numbers.size() - 1);
-                    operations.remove(operations.size() - 1);
-                    if (operations.isEmpty()) {
-                        lastIndex = 0;
+            text = "0";
+            resultLine.setText(text);
+        }
+        else {
+            if (!getResultLineText().equals("0")) {
+                text = getResultLineText();
+                if (text.substring(text.length() - 1).equals(",")) {
+                    commaButton.setEnabled(true);
+                }
+                text = text.substring(0, text.length() - 1);
+                if (text.isEmpty()) {
+                    text = "0";
+                }
+                resultLine.setText(text);
+            }
+            else if (!getCalculationLineText().isEmpty()) {
+                text = getCalculationLineText();
+                if (!rpn.isNumber(text.substring(text.length() - 1))) {
+                    if (text.substring(text.length() - 2, text.length() - 1).equals("(") || text.substring(text.length() - 1).equals(")")) {
+                        if (text.substring(text.length() - 2, text.length() - 1).equals("(")) {
+                            brackets--;
+                            if (brackets < 1) {
+                                endingBracketButton.setEnabled(false);
+                            }
+                            operationBefore = true;
+                        }
+                        else {
+                            brackets++;
+                            endingBracketButton.setEnabled(true);
+                        }
+                        text = text.substring(0, text.length() - 2);
                     }
                     else {
-                        lastIndex = getDisplayText().lastIndexOf(operations.get(operations.size() - 1)) + 1;
+                        text = text.substring(0, text.length() - 3);
+                        operationBefore = false;
+                        operationDeleted = true;
                     }
                 }
-                else if (lastChar.equals(",")) {
-                    commaUsed = false;
+                else {
+                    while (!text.isEmpty() && !text.substring(text.length() - 1).equals(" ")) {
+                        text = text.substring(0, text.length() - 1);
+                    }
+                    operationBefore = true;
                 }
-                operationBefore = false;
-                display.setText(getDisplayText().substring(0, getDisplayText().length() - 1));
-                System.out.println(getDisplayText());
-                System.out.println(lastIndex);
-                System.out.println(getDisplayText().substring(lastIndex)); // !!!!!!!!!
-                if (getDisplayText().substring(lastIndex).contains(",")) {
-                    commaUsed = true;
-                }
+                calculationLine.setText(text);
             }
         }
     }
 
     public void onClearAllButtonClick(View view) {
-        numbers.clear();
-        operations.clear();
-        lastIndex = 0;
-        operationBefore = false;
-        commaUsed = false;
-        oldCalculation2.setText("");
-        oldResult2.setText("");
-        oldCalculation1.setText("");
-        oldResult1.setText("");
-        display.setText("");
+        if (getResultLineText().equals("0") || newCalculation) {
+            brackets = 0;
+            endingBracketButton.setEnabled(false);
+            commaButton.setEnabled(true);
+            operationBefore = false;
+            operationDeleted = false;
+            calculationLine.setText("");
+            resultLine.setText("0");
+        }
+        else {
+            commaButton.setEnabled(true);
+            operationBefore = false;
+            text = "AC";
+            clearAllButton.setText(text);
+            resultLine.setText("0");
+        }
     }
 
     public boolean isCommaNecessary(double number) {
-        int comparedInt = (int) number;
+        long comparedInt = (long) number;
         return (double) comparedInt != number;
-    }
-
-    public boolean isNumber(String string) {
-        if (string == null) {
-            return false;
-        }
-        try {
-            Double.parseDouble(string);
-        } catch (NumberFormatException e) {
-            return false;
-        }
-        return true;
     }
 }
