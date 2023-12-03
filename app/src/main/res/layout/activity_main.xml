@@ -19,8 +19,86 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <HorizontalScrollView
+        android:id="@+id/hsv_calculation"
+        android:layout_width="350dp"
+        android:layout_height="45dp"
+        android:layout_margin="5dp"
+        android:background="@drawable/screen"
+        android:fillViewport="true"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/hsv_inputOutput"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/gif_background"
+        app:layout_constraintVertical_bias="0.9">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txt_calculationLine"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:clickable="false"
+                android:lines="1"
+                android:textAlignment="textEnd"
+                android:textColor="@color/black"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@+id/txt_inputOutputLine"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.9" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <HorizontalScrollView
+        android:id="@+id/hsv_inputOutput"
+        android:layout_width="350dp"
+        android:layout_height="60dp"
+        android:layout_margin="20dp"
+        android:background="@drawable/screen"
+        android:fillViewport="true"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/tableLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txt_inputOutputLine"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:clickable="false"
+                android:lines="1"
+                android:textAlignment="textEnd"
+                android:textColor="@color/black"
+                android:textSize="34sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@+id/tableLayout"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="1.0" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
     <TextView
-        android:id="@+id/txt_calculation"
+        android:id="@+id/txt_calculationLineDead"
         android:layout_width="350dp"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
@@ -32,14 +110,15 @@
         android:textColor="@color/black"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/txt_number"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/txt_inputOutputLine"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.9" />
 
     <TextView
-        android:id="@+id/txt_number"
+        android:id="@+id/txt_inputOutputLineDead"
         android:layout_width="350dp"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
@@ -52,6 +131,7 @@
         android:textColor="@color/black"
         android:textSize="34sp"
         android:textStyle="bold"
+        android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/tableLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -114,33 +194,31 @@
                 android:layout_height="70dp"
                 android:layout_margin="3dp"
                 android:background="@drawable/button_background"
-                android:enabled="false"
                 android:insetLeft="0dp"
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
                 android:maxWidth="70dp"
                 android:minWidth="70dp"
-                android:onClick="onOperationButtonClick"
+                android:onClick="OnNegationOrSquareRootButtonClick"
                 android:padding="0dp"
                 android:text="√"
                 android:textSize="24sp"
                 app:cornerRadius="20dp" />
 
             <Button
-                android:id="@+id/btn_action3"
+                android:id="@+id/btn_unknown1"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 android:layout_margin="3dp"
                 android:background="@drawable/button_background"
-                android:enabled="false"
                 android:insetLeft="0dp"
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
                 android:maxWidth="70dp"
                 android:minWidth="70dp"
-                android:onClick="onOperationButtonClick"
+                android:onClick="OnNegationOrSquareRootButtonClick"
                 android:padding="0dp"
                 android:text="±"
                 android:textSize="24sp"
@@ -152,7 +230,7 @@
             android:layout_height="match_parent">
 
             <Button
-                android:id="@+id/btn_action1"
+                android:id="@+id/btn_delete1"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 android:layout_margin="3dp"
@@ -170,7 +248,7 @@
                 app:cornerRadius="20dp" />
 
             <Button
-                android:id="@+id/btn_action2"
+                android:id="@+id/btn_delete2"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 android:layout_margin="3dp"

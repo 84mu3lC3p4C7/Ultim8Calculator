@@ -2,279 +2,58 @@ package com.example.ultim8calculator;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
-import algorithm.ReversePolishNotation;
+import android.widget.HorizontalScrollView;
 
 public class MainActivity extends AppCompatActivity {
-
-    TextView resultLine, calculationLine;
-    Button clearAllButton, commaButton, endingBracketButton;
-    ReversePolishNotation rpn = new ReversePolishNotation();
-    NumberFormat decimalFormat = DecimalFormat.getInstance();
-    String text; // just to get rid of warnings "Do not concatenate text displayed with setText. Use resource string with placeholders."
-    double result;
-    int brackets = 0;
-    boolean operationBefore = false, newCalculation = true, operationDeleted = false;
-
+    Calculator calculator;
+    ComponentVisualsManager cvm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        resultLine = findViewById(R.id.txt_number);
-        calculationLine = findViewById(R.id.txt_calculation);
-        clearAllButton = findViewById(R.id.btn_action1);
-        commaButton = findViewById(R.id.btn_comma);
-        endingBracketButton = findViewById(R.id.btn_bracket2);
-
-        decimalFormat.setMinimumFractionDigits(0);
-        decimalFormat.setMaximumFractionDigits(8);
-        decimalFormat.setGroupingUsed(false);
-        decimalFormat.setRoundingMode(RoundingMode.HALF_EVEN);
-
-        text = "0";
-        resultLine.setText(text);
-        endingBracketButton.setEnabled(false);
-    }
-
-    private String getResultLineText() {
-        return resultLine.getText().toString();
-    }
-
-    private String getCalculationLineText() {
-        return calculationLine.getText().toString();
-    }
-
-    private void afterNewCalculation() {
-        newCalculation = false;
-        brackets = 0;
-        endingBracketButton.setEnabled(false);
-        commaButton.setEnabled(true);
-        calculationLine.setText("");
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        calculator = new Calculator(this);
+        cvm = new ComponentVisualsManager(this);
     }
 
     public void onNumberButtonClick(View view) {
-        Button btn = (Button) view;
-        if (newCalculation) {
-            afterNewCalculation();
-        }
-        operationBefore = false;
-        text = "C";
-        clearAllButton.setText(text);
-        if (getResultLineText().equals("0")) {
-            text = btn.getText().toString();
-        }
-        else {
-            text = getResultLineText() + btn.getText().toString();
-        }
-        resultLine.setText(text);
-    }
-
-    public void onOperationButtonClick(View view) {
-        if (!getResultLineText().isEmpty()) {
-            if (newCalculation) {
-                afterNewCalculation();
-            }
-            Button btn = (Button) view;
-            if (operationBefore) {
-                text = getCalculationLineText().substring(0, getCalculationLineText().length() - 2) + btn.getText().toString() + " ";
-                calculationLine.setText(text);
-            }
-            else {
-                operationBefore = true;
-                commaButton.setEnabled(true);
-                if (!getCalculationLineText().isEmpty() && rpn.isNumber(getCalculationLineText().substring(getCalculationLineText().length() - 1)) || !getCalculationLineText().isEmpty() && getCalculationLineText().substring(getCalculationLineText().length() - 1).equals(")")) {
-                    operationDeleted = false;
-                    text = getCalculationLineText() + " " + btn.getText().toString() + " ";
-                }
-                else {
-                    text = getCalculationLineText() + getResultLineText() + " " + btn.getText().toString() + " ";
-                }
-                calculationLine.setText(text);
-                resultLine.setText("0");
-            }
-        }
-    }
-
-    public void onBracketsButtonClick(View view) {
-        Button btn = (Button) view;
-        if (newCalculation) {
-            afterNewCalculation();
-        }
-        if (btn.getText().toString().equals("(")) {
-            brackets++;
-            endingBracketButton.setEnabled(true);
-            if (!getResultLineText().equals("0")) {
-                text = getCalculationLineText() + getResultLineText() + " × " + btn.getText() + " ";
-                resultLine.setText("0");
-            }
-            else if (!getCalculationLineText().isEmpty() && rpn.isNumber(getCalculationLineText().substring(getCalculationLineText().length() - 1)) || !getCalculationLineText().isEmpty() && getCalculationLineText().substring(getCalculationLineText().length() - 1).equals(")")) {
-                text = getCalculationLineText() + " × " + btn.getText() + " ";
-            }
-            else {
-                text = getCalculationLineText() + btn.getText() + " ";
-            }
-        }
-        else {
-            brackets--;
-            if (brackets < 1) {
-                endingBracketButton.setEnabled(false);
-            }
-            operationDeleted = true;
-            if (getCalculationLineText().substring(getCalculationLineText().length() - 2, getCalculationLineText().length() - 1).matches("[+\\-×÷^(]")) {
-                text = getCalculationLineText() + getResultLineText() + " " + btn.getText();
-            }
-            else {
-                text = getCalculationLineText() + " " + btn.getText();
-            }
-            resultLine.setText("0");
-        }
-        operationBefore = false;
-        calculationLine.setText(text);
-    }
-
-    public void onEqualsButtonClick(View view) {
-        if (!newCalculation) {
-            newCalculation = true;
-            if (getCalculationLineText().isEmpty()) {
-                calculationLine.setText(getResultLineText());
-            }
-            else {
-                text = getCalculationLineText();
-                if (text.length() > 1 && text.substring(text.length() - 2, text.length() - 1).matches("[+\\-×÷^(]")) {
-                    text += getResultLineText();
-                }
-                for (int i = 0; i < brackets; i++) {
-                    text += " )";
-                }
-                calculationLine.setText(text);
-                System.out.println(text);
-            }
-            try {
-                result = rpn.solveRPN(rpn.convertToRPN(getCalculationLineText().replace(",", ".")));
-            }   catch (NumberFormatException e ) {
-                result = 0;
-                // need to handle errors here !!!
-            }
-            if (isCommaNecessary(result)) {
-                commaButton.setEnabled(false);
-                text = decimalFormat.format(result); //used to be "text = decimalFormat.format(result).replace(",", "").replace('.', ',');", but this works for physical devices fine
-                resultLine.setText(text);
-                text = getCalculationLineText() + " =";
-                calculationLine.setText(text);
-            }
-            else {
-                commaButton.setEnabled(true);
-                text = getCalculationLineText() + " =";
-                calculationLine.setText(text);
-                resultLine.setText(String.valueOf((long) result));
-            }
-            brackets = 0;
-            endingBracketButton.setEnabled(false);
-            operationBefore = false;
-            text = "AC";
-            clearAllButton.setText(text);
-        }
+        calculator.addNumberToInputOutputLine(view);
+        cvm.scrollInputOutputLineRight();
     }
 
     public void onCommaButtonClick(View view) {
-        if (newCalculation) {
-            afterNewCalculation();
-        }
-        commaButton.setEnabled(false);
-        text = getResultLineText() + ",";
-        resultLine.setText(text);
+        calculator.addCommaToInputOutputLine();
+        cvm.scrollInputOutputLineRight();
+    }
+
+    public void onOperationButtonClick(View view) {
+        calculator.addOperationToCalculationLine(view);
+        cvm.scrollCalculationLineRight();
+    }
+
+    public void OnNegationOrSquareRootButtonClick(View view) {
+        calculator.addNegationOrSquareRoot(view);
+    }
+
+    public void onBracketsButtonClick(View view) {
+        calculator.addBracketToCalculationLine(view);
+        cvm.scrollCalculationLineRight();
     }
 
     public void onClearButtonClick(View view) {
-        if (newCalculation) {
-            newCalculation = false;
-            operationDeleted = true;
-            brackets = 0;
-            endingBracketButton.setEnabled(false);
-            commaButton.setEnabled(true);
-            if (!getCalculationLineText().isEmpty()) {
-                text = getCalculationLineText().substring(0, getCalculationLineText().length() - 2);
-                calculationLine.setText(text);
-            }
-            text = "0";
-            resultLine.setText(text);
-        }
-        else {
-            if (!getResultLineText().equals("0")) {
-                text = getResultLineText();
-                if (text.substring(text.length() - 1).equals(",")) {
-                    commaButton.setEnabled(true);
-                }
-                text = text.substring(0, text.length() - 1);
-                if (text.isEmpty()) {
-                    text = "0";
-                }
-                resultLine.setText(text);
-            }
-            else if (!getCalculationLineText().isEmpty()) {
-                text = getCalculationLineText();
-                if (!rpn.isNumber(text.substring(text.length() - 1))) {
-                    if (text.substring(text.length() - 2, text.length() - 1).equals("(") || text.substring(text.length() - 1).equals(")")) {
-                        if (text.substring(text.length() - 2, text.length() - 1).equals("(")) {
-                            brackets--;
-                            if (brackets < 1) {
-                                endingBracketButton.setEnabled(false);
-                            }
-                            operationBefore = true;
-                        }
-                        else {
-                            brackets++;
-                            endingBracketButton.setEnabled(true);
-                        }
-                        text = text.substring(0, text.length() - 2);
-                    }
-                    else {
-                        text = text.substring(0, text.length() - 3);
-                        operationBefore = false;
-                        operationDeleted = true;
-                    }
-                }
-                else {
-                    while (!text.isEmpty() && !text.substring(text.length() - 1).equals(" ")) {
-                        text = text.substring(0, text.length() - 1);
-                    }
-                    operationBefore = true;
-                }
-                calculationLine.setText(text);
-            }
-        }
+        calculator.backspace();
     }
 
     public void onClearAllButtonClick(View view) {
-        if (getResultLineText().equals("0") || newCalculation) {
-            brackets = 0;
-            endingBracketButton.setEnabled(false);
-            commaButton.setEnabled(true);
-            operationBefore = false;
-            operationDeleted = false;
-            calculationLine.setText("");
-            resultLine.setText("0");
-        }
-        else {
-            commaButton.setEnabled(true);
-            operationBefore = false;
-            text = "AC";
-            clearAllButton.setText(text);
-            resultLine.setText("0");
-        }
+        calculator.clearEverything();
     }
 
-    public boolean isCommaNecessary(double number) {
-        long comparedInt = (long) number;
-        return (double) comparedInt != number;
+    public void onEqualsButtonClick(View view) {
+        calculator.finishCalculation();
+        cvm.scrollCalculationLineRight();
     }
 }

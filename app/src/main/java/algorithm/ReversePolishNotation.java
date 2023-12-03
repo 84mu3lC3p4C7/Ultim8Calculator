@@ -9,7 +9,7 @@ public class ReversePolishNotation {
     // Making this was pain
 
     public String convertToRPN(String calculation) {
-        if (!calculation.contains(" ")) {
+        if (!calculation.contains(" ") && !calculation.contains("√")) {
             return calculation;
         }
         else {
@@ -17,6 +17,9 @@ public class ReversePolishNotation {
             StringBuilder rpn = new StringBuilder();
             Stack<String> stack = new Stack<>();
             for (String s : splitCalculation) {
+                if (s.charAt(0) == '√') {
+                    s = solveSquareRoot(s);
+                }
                 if (isNumber(s)) {
                     rpn.append(s).append(" ");
                 }
@@ -99,6 +102,10 @@ public class ReversePolishNotation {
             default:
                 return 0;
         }
+    }
+
+    private String solveSquareRoot(String s) {
+        return String.valueOf(Math.sqrt(Double.parseDouble(s.substring(1))));
     }
 
     public boolean isNumber(String string) {
