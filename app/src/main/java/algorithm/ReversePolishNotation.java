@@ -17,13 +17,18 @@ public class ReversePolishNotation {
             StringBuilder rpn = new StringBuilder();
             Stack<String> stack = new Stack<>();
             for (String s : splitCalculation) {
-                if (s.charAt(0) == '√') {
+                if (s.equals("√(")) {
+                    String squareRootExpression = findSquareRootExpressions(calculation);
+                    calculation = calculation.replace("√( " + squareRootExpression + " )", solveSquareRoot("√" + solveRPN(convertToRPN(squareRootExpression)).toString()));
+                    return convertToRPN(calculation);
+                }
+                else if (s.startsWith("√")) {
                     s = solveSquareRoot(s);
                 }
                 if (isNumber(s)) {
                     rpn.append(s).append(" ");
                 }
-                else {
+                else if (!s.equals("√(")) {
                     if (stack.isEmpty()) {
                         stack.add(s);
                     }
@@ -106,6 +111,39 @@ public class ReversePolishNotation {
 
     private String solveSquareRoot(String s) {
         return String.valueOf(Math.sqrt(Double.parseDouble(s.substring(1))));
+    }
+
+    public static String findSquareRootExpressions(String input) {
+        StringBuilder result = new StringBuilder();
+        int openParenthesesCount = 0;
+        boolean insideSquareRoot = false;
+        int startIndex = -1;
+
+        for (int i = 0; i < input.length(); i++) {
+            char currentChar = input.charAt(i);
+
+            if (currentChar == '√' && i + 1 < input.length() && input.charAt(i + 1) == '(') {
+                insideSquareRoot = true;
+                startIndex = i;
+                openParenthesesCount = 0;
+            }
+
+            if (insideSquareRoot) {
+                if (currentChar == '(') {
+                    openParenthesesCount++;
+                } else if (currentChar == ')') {
+                    openParenthesesCount--;
+
+                    if (openParenthesesCount == 0) {
+                        result.append(input, startIndex, i + 1).append(" ");
+                        result = new StringBuilder(result.substring(2, result.length() - 2));
+                        return result.toString().trim();
+                    }
+                }
+            }
+        }
+        result = new StringBuilder(result.substring(2, result.length() - 2));
+        return result.toString().trim();
     }
 
     public boolean isNumber(String string) {
