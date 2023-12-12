@@ -5,4 +5,5 @@
 
 ## **Version 1.0 is now complete!** <br>
 <img src='https://github.com/84mu3lC3p4C7/Ultim8Calculator/assets/111708236/5630b526-593f-407e-84f3-93bfd54b32df' width='200'> <br>
+My old calculator:
 <img src='https://github.com/84mu3lC3p4C7/Ultim8Calculator/assets/111708236/778ff072-165b-474d-b168-c1d7e8997fdc' width='500'>
