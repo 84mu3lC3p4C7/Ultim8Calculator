@@ -2,5 +2,13 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="btn_disabled">#AF777777</color>
+    <color name="red">#FF0000</color>
+    <color name="green">#00FF00</color>
+    <color name="blue">#0000FF</color>
+
+    <color name="settings_background">#222222</color>
+    <color name="btn_enabled1">#6FFFFFFF</color>
+    <color name="btn_enabled2">#8FFFFFFF</color>
+    <color name="btn_disabled1">#55777777</color>
+    <color name="btn_disabled2">#AF777777</color>
 </resources>

@@ -2,17 +2,12 @@ package com.example.ultim8calculator;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.pm.ActivityInfo;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-
 public class MainActivity extends AppCompatActivity {
     Calculator calculator;
-
     DataManager dataManager;
     ComponentVisualsManager cvm;
 
@@ -22,9 +17,21 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         dataManager = new DataManager(this);
-        calculator = new Calculator(this, dataManager.loadData());
-        cvm = new ComponentVisualsManager(this);
+        calculator = new Calculator(this, dataManager.loadData("calculator-data.txt"));
+        cvm = new ComponentVisualsManager(this, dataManager.loadData("cvm-data.txt"));
 
+        Intent intent = getIntent();
+        if (intent != null) {
+            String primaryButtonColor = intent.getStringExtra("primaryButtonsColor");
+            if (primaryButtonColor != null && primaryButtonColor.length() == 7) {
+                cvm.updatePrimaryButtonsColor(primaryButtonColor);
+            }
+            String secondaryButtonColor = intent.getStringExtra("secondaryButtonsColor");
+            if (secondaryButtonColor != null && secondaryButtonColor.length() == 7) {
+                cvm.updateSecondaryButtonsColor(secondaryButtonColor);
+            }
+            dataManager.saveData(cvm.getCVMData(), "cvm-data.txt");
+        }
     }
 
     public void onNumberButtonClick(View view) {
@@ -88,7 +95,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        dataManager.saveData(calculator.getCalculatorData());
+        dataManager.saveData(calculator.getCalculatorData(), "calculator-data.txt");
         super.onPause();
+    }
+
+    public void switchToSettingsActivity(View view) {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 }

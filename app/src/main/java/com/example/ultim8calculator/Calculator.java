@@ -4,7 +4,6 @@ package com.example.ultim8calculator;
 import android.app.Activity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import java.math.RoundingMode;
@@ -66,12 +65,13 @@ public class Calculator {
                 if (!Boolean.parseBoolean(loadedData[9])) {
                     squareRootButton.setEnabled(false);
                 }
+                clearAllButton.setText(loadedData[10]);
             } catch (ArrayIndexOutOfBoundsException e) {
                 inputOutputLine.setText("0");
                 closingBracketButton.setEnabled(false);
                 commaButton.setEnabled(true);
                 squareRootButton.setEnabled(true);
-                System.err.println("Failed to load calculation data: " + e.getLocalizedMessage());
+                System.err.println("Failed to load calculator data: " + e.getLocalizedMessage());
             }
         }
         else {
@@ -161,9 +161,14 @@ public class Calculator {
         text = getInputOutputLineText();
         if (newCalculation) {
             afterNewCalculation();
-            text = "-" + text;
-            calculationLine.setText(text);
-            inputOutputLine.setText("0");
+            if (text.equals("0")) {
+                inputOutputLine.setText("-0");
+            }
+            else {
+                text = "-" + text;
+                calculationLine.setText(text);
+                inputOutputLine.setText("0");
+            }
         }
         else {
             if (!text.startsWith("-")) {
@@ -366,6 +371,7 @@ public class Calculator {
             closingBracketsCount = 0;
             brackets2.setText(String.valueOf(closingBracketsCount));
             closingBracketButton.setEnabled(false);
+            squareRootButton.setEnabled(true);
             commaButton.setEnabled(true);
             operationBefore = false;
             operationDeleted = false;
@@ -388,6 +394,6 @@ public class Calculator {
     }
 
     public String getCalculatorData() {
-        return getInputOutputLineText() + ";" + getCalculationLineText() + ";" + result + ";" + openingBracketsCount+ ";" + closingBracketsCount + ";" + operationBefore + ";" + newCalculation + ";" + operationDeleted + ";" + commaButton.isEnabled() + ";" + squareRootButton.isEnabled();
+        return getInputOutputLineText() + ";" + getCalculationLineText() + ";" + result + ";" + openingBracketsCount+ ";" + closingBracketsCount + ";" + operationBefore + ";" + newCalculation + ";" + operationDeleted + ";" + commaButton.isEnabled() + ";" + squareRootButton.isEnabled() + ";" + clearAllButton.getText();
     }
 }

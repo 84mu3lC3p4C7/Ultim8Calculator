@@ -8,27 +8,28 @@ import java.io.FileOutputStream;
 
 public class DataManager {
 
+    // calculator-data.txt, cvm-data.txt
     Activity activity;
 
     public DataManager(Activity activity) {
         this.activity = activity;
     }
 
-    public void saveData(String dataAsString) {
+    public void saveData(String dataAsString, String file) {
         File path = activity.getApplicationContext().getFilesDir();
         try {
-            FileOutputStream writer = new FileOutputStream(new File(path, "data.txt"));
+            FileOutputStream writer = new FileOutputStream(new File(path, file));
             writer.write(dataAsString.getBytes());
             writer.close();
-            System.out.println(dataAsString);
+            //System.out.println(dataAsString); // <--- uncomment to see what data is being saved
         } catch (Exception e) {
             System.err.println("Error occured while attempting to save data, data may not be saved!");
         }
     }
 
-    public String[] loadData() {
+    public String[] loadData(String file) {
         File path = activity.getApplicationContext().getFilesDir();
-        File readFrom = new File(path, "data.txt");
+        File readFrom = new File(path, file);
         byte[] rawData = new byte[(int) readFrom.length()];
         String[] data;
         FileInputStream stream = null;
@@ -39,7 +40,7 @@ public class DataManager {
 
         } catch (Exception e) {
             data = null;
-            System.err.println("Error occured while attempting to read saved data, resetting calculator to defaults!");
+            System.err.println("Error occured while attempting to read saved data, resetting calculator data!");
         }
         return data;
     }

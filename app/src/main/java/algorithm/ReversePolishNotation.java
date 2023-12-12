@@ -54,6 +54,7 @@ public class ReversePolishNotation {
             while (!stack.isEmpty()) {
                 rpn.append(stack.pop()).append(" ");
             }
+            //System.out.println(rpn); // <--- uncomment to see completed rpn
             return rpn.toString();
         }
     }
